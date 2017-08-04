@@ -1,0 +1,21 @@
+{
+    "name": "mirazmac/pagination",
+    "description": "Generate PHP pagination links with ease.",
+    "type": "library",
+    "keywords": ["pagination","pagination links","navigation","mysql","data spliting"],
+    "homepage": "https://github.com/mirazmac/Pagination",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Miraz Mac",
+            "email": "mirazmac@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "MirazMac\\Pagination\\": "src/"
+        }
+    }
+}
