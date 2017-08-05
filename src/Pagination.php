@@ -105,10 +105,6 @@ class Pagination
     public function __construct($total_items, $current_page, $items_per_page = 10)
     {
         $this->totalItems($total_items)->currentPage($current_page)->itemsPerPage($items_per_page);
-
-        if ($this->items_per_page <= 0) {
-            throw new \LogicException('Items per page must be at least 1');
-        }
     }
 
     /**
@@ -133,7 +129,7 @@ class Pagination
     {
         $page = (int)$page;
 
-        if ($page === 0 || $page < 0) {
+        if ($page <= 0) {
             $page = 1;
         }
 
@@ -150,9 +146,20 @@ class Pagination
     public function itemsPerPage($items_count)
     {
         $this->items_per_page = (int)$items_count;
+
+        if ($this->items_per_page <= 0) {
+            throw new \LogicException('Items per page must be at least 1');
+        }
+
         return $this;
     }
 
+    /**
+     * Set numeric links depth
+     *
+     * @param  integer $count The numeric links depth
+     * @return object
+     */
     public function numericDepth($count)
     {
         $count = (int)$count;
