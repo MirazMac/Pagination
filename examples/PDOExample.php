@@ -50,14 +50,4 @@ while ($row = $query->fetch()) {
 
 echo '<hr/>';
 
-foreach ($pages as $pageObj) {
-    echo '<li>';
-    echo '<a href="?page='.$pageObj->id.'">';
-    if ($pageObj->label === 'current') {
-        echo "<b>{$pageObj->id}</b>";
-    } else {
-        echo $pageObj->label;
-    }
-    echo '</a>';
-    echo '</li>';
-}
+echo $pagination->renderHtml();

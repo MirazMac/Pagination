@@ -42,6 +42,11 @@ class Pagination
     const LABEL_CURRENT = 'current';
 
     /**
+     * Label for numeric
+     */
+    const LABEL_NUMERIC = 'numeric';
+
+    /**
      * Base integer of first page
      */
     const BASE_PAGE = 1;
@@ -74,6 +79,8 @@ class Pagination
      */
     protected $numeric_links_depth = 3;
 
+    protected $line_format = [];
+
     /**
      * Toggle numeric links
      *
@@ -104,7 +111,10 @@ class Pagination
      */
     public function __construct($total_items, $current_page, $items_per_page = 10)
     {
-        $this->totalItems($total_items)->currentPage($current_page)->itemsPerPage($items_per_page);
+        $this->totalItems($total_items)
+             ->currentPage($current_page)
+             ->itemsPerPage($items_per_page)
+             ->setLineFormat('<li class="@class@"><a href="?page=@id@">@label@</a></li>');
     }
 
     /**
@@ -205,7 +215,7 @@ class Pagination
         $pagination_data = [];
 
         if ($this->total_items === 0) {
-            return (object)$pagination_data;
+            return $pagination_data;
         }
 
         $total_pages = ceil($this->total_items/$this->items_per_page);
@@ -214,12 +224,12 @@ class Pagination
 
         // First
         if ($this->first_last_links && $this->current_page - $this->numeric_links_depth > self::BASE_PAGE) {
-            $pagination_data[] = (object)['label' => self::LABEL_FIRST, 'id' => self::BASE_PAGE];
+            $pagination_data[] = ['label' => self::LABEL_FIRST, 'id' => self::BASE_PAGE];
         }
 
         // Previous
         if ($this->current_page > self::BASE_PAGE) {
-            $pagination_data[] = (object)['label' => self::LABEL_PREV, 'id' => $this->current_page - 1];
+            $pagination_data[] = ['label' => self::LABEL_PREV, 'id' => $this->current_page - 1];
         }
 
         // Numeric
@@ -227,24 +237,63 @@ class Pagination
             for ($i = max(self::BASE_PAGE, $this->current_page - $this->numeric_links_depth);
                 $i <= min($this->current_page + $this->numeric_links_depth, $total_pages); $i++) {
                 if ($i === $this->current_page) {
-                    $pagination_data[] = (object)['label' => self::LABEL_CURRENT, 'id' => $i];
+                    $pagination_data[] = ['label' => self::LABEL_CURRENT, 'id' => $i];
                     continue;
                 }
 
-                $pagination_data[] = (object)['label' => $i, 'id' => $i];
+                $pagination_data[] = ['label' => self::LABEL_NUMERIC, 'id' => $i];
             }
         }
         // Next
         if ($this->current_page < $total_pages) {
-            $pagination_data[] = (object)['label' => self::LABEL_NEXT, 'id' => $this->current_page + 1];
+            $pagination_data[] = ['label' => self::LABEL_NEXT, 'id' => $this->current_page + 1];
         }
 
         // Last
         if ($this->first_last_links && $this->current_page < $total_pages - $this->numeric_links_depth) {
-            $pagination_data[] = (object)['label' => self::LABEL_LAST, 'id' => $total_pages];
+            $pagination_data[] = ['label' => self::LABEL_LAST, 'id' => $total_pages];
         }
 
         return (object)$pagination_data;
+    }
+
+    public function renderHtml($before = '<ul class="pagination">', $after = '</ul>')
+    {
+        $pages = $this->parse();
+        $html = '';
+        if (empty($pages)) {
+            return $html;
+        }
+
+        $html .= $before;
+        $class = $this->line_format['idle_class'];
+
+        foreach ($pages as $page) {
+            $label = $page['id'];
+
+            if ($page['label'] === self::LABEL_CURRENT) {
+                $class = $this->line_format['active_class'];
+            } elseif ($page['label'] === self::LABEL_FIRST) {
+                $label = 'First';
+            } elseif ($page['label'] === self::LABEL_LAST) {
+                $label = 'Last';
+            } elseif ($page['label'] === self::LABEL_NEXT) {
+                $label = 'Next';
+            } elseif ($page['label'] === self::LABEL_PREV) {
+                $label = 'Prev.';
+            }
+            $parser = ['@id@' => $page['id'], '@class@' => $class, '@label@' => $label];
+            $html .= str_ireplace(array_keys($parser), array_values($parser), $this->line_format['format']);
+        }
+
+        $html .= $after;
+        return $html;
+    }
+
+    public function setLineFormat($format, $active_class = 'active', $idle_class = 'page_link')
+    {
+        $this->line_format = ['format' => $format, 'active_class' => $active_class, 'idle_class' => $idle_class];
+        return $this;
     }
 
     /**
